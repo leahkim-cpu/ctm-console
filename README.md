@@ -12,9 +12,9 @@ Leo works in Claude Code and Ali works in Codex. Their agents never see each oth
 - **Past text, measured today at small scale:**
   - `latent_read` (M2a): a local Qwen2.5-7B reads the files once and keeps its KV cache warm, and agents get short answers with verified quotes. On two sets of eight synthetic codebase questions it scored 7/8 on each, using under 9% of the tokens of reading the files. Claude Sonnet reading every file scored 16/16 to the pool's 14/16.
   - `latent_transfer` (M2b): a 47.7M-parameter mapper, trained on one laptop GPU, carries Qwen2.5-0.5B's KV cache into SmolLM2-360M, a different model family. On 300 SQuAD validation questions the receiver scores F1 0.757; with the sender's cache zeroed it falls to 0.156, the no-passage level. These are small models, and we do not claim it beats reading the text. See [docs/m2b-transfer.md](docs/m2b-transfer.md).
-  - `latent_team` (M2c): subagents pass KV working memory instead of text, and only the solver writes. It is built and served, and its benchmark numbers are not recorded yet.
+  - `latent_team` (M2c): subagents pass KV working memory instead of text, and only the solver writes. On Qwen2.5-3B and 200 GSM8K test questions, the team at 40 latent steps scores 0.835 against 0.780 for a team that writes text, with 72% fewer generated tokens and 1.85× faster, so its gate passes. It passes again on a second seed and on a disjoint sample. It does not beat the same model solving alone (0.820), and the text team is held back by truncated plans. Random vectors in place of the hidden states score 0.505. See [docs/m2c-latent-team.md](docs/m2c-latent-team.md).
 - **How we built it:** two people, each with their own agent. The agents coordinated all day through typed handoff packets in a separate repo, and CI rejected malformed ones. Every feature has an eval written before the code ([docs/evals.md](docs/evals.md)) and an independent review.
-- **Tests on `main`:** node 95 of 96 (1 skipped), Playwright 12 of 12, Python runtime 117 run (22 skipped without a GPU).
+- **Tests on `main`** (17ecef0, Windows, measured 2026-11-16): node 139 of 140 (1 skipped), Python runtime 131 run (24 skipped: 21 need torch, 3 need symlink rights). Playwright lists 13 tests; it last passed 13 of 13 in cycle 10.
 
 ## Run locally
 
@@ -103,8 +103,6 @@ Party names are self-asserted. The ledger only requires that a linked graph name
 Two people each import their own agent's transcript, and each agent publishes a v2 graph for its person. The second agent links its nodes to the first graph as `matches`, `conflicts` or `answers`. Open the browser, paste both graph IDs under **Negotiation room** and select **Open room**. The room merges both parties' nodes and lists every link between the two graphs as a proposal. Each person selects **Confirm** or **Reject** under their own name. A proposal is agreed only when both confirm and rejected when either rejects, and a person can change their choice later. The address bar keeps `#room=ROOM_ID`, so the view can be reloaded or reopened.
 
 Agents can open and read rooms (`POST /api/rooms` with `{"graphIds": [A, B]}`, and `GET /api/rooms/ROOM_ID`). Recording a choice (`POST /api/rooms/ROOM_ID/decisions`) requires a same-origin browser request, so the CLI and the MCP adapter cannot confirm anything. A local process could still forge the browser's headers. The rule keeps well-behaved agents out of the decision, but it does not prove who clicked. A room is tied to two specific graph snapshots: after either party publishes a revised graph, open a new room.
-
-Each packet is a snapshot of one imported session. An exact repeat returns its existing ID. Object key order does not matter, but the order of `nodes`, `edges` and `evidenceLines` does: reordering them produces a separate graph. A pending action is ready when its prerequisites are completed and its blockers are resolved. A decision becomes historical when another decision explicitly supersedes it. See the [packet schema](schemas/semantic-graph.schema.json) and [evals](docs/evals.md).
 
 ## Connect an agent over MCP
 
