@@ -23,6 +23,7 @@ export function createModel({ workingMs = 60_000 } = {}) {
   const parties = new Map(); // key -> { key, party, label, provider, sessionId, graph, meter, at }
   const graphParty = new Map(); // graph ID -> party key, for every graph seen
   const published = new Map(); // graph ID -> publish time, for every graph seen
+  const snapshots = new Map(); // graph ID -> graph, for every graph read in full
 
   /** Party key and node ID of a link's target, when its graph has been seen. */
   const linkTarget = link => {
@@ -30,8 +31,17 @@ export function createModel({ workingMs = 60_000 } = {}) {
     return party ? { party, id: link.to } : null;
   };
 
+  // Everything a person sees or checks on a node: a change to any of it is a change.
+  const nodeText = node => JSON.stringify([node.kind, node.label, node.status ?? null, node.to ?? null, node.evidenceLines]);
   function nodeLabels(graph) {
-    return new Map(graph.packet.nodes.map(node => [node.id, JSON.stringify([node.label, node.status ?? null, node.kind])]));
+    return new Map(graph.packet.nodes.map(node => [node.id, nodeText(node)]));
+  }
+
+  /** Open questions of a party's current graph that no current graph answers. */
+  function openQuestions(entry, answered) {
+    const open = new Set(entry.graph.openQuestionIds ?? entry.graph.packet.nodes
+      .filter(node => node.kind === 'question' && node.status === 'open').map(node => node.id));
+    return new Set([...open].filter(id => !answered.has(nodeKey(entry.key, id))));
   }
 
   return {
@@ -42,6 +52,7 @@ export function createModel({ workingMs = 60_000 } = {}) {
     apply({ summary, graph, meter = null, provider, at }) {
       const key = partyKey(graph.packet);
       graphParty.set(graph.id, key);
+      snapshots.set(graph.id, graph);
       if (!published.has(graph.id)) published.set(graph.id, at);
       const previous = parties.get(key);
       if (previous && previous.at > at) return { party: key, added: [], changed: [], read: [] };
@@ -70,6 +81,21 @@ export function createModel({ workingMs = 60_000 } = {}) {
       return { party: key, added, changed, read: [...new Set(read)] };
     },
 
+    /** Remember a graph read only because a current graph links to it. */
+    noteGraph(graph) {
+      if (!graphParty.has(graph.id)) graphParty.set(graph.id, partyKey(graph.packet));
+      snapshots.set(graph.id, graph);
+    },
+
+    /** Graphs that current graphs link to but that have not been read. */
+    unknownLinkedGraphs() {
+      const ids = new Set();
+      for (const { graph } of parties.values()) {
+        for (const link of graph.packet.links ?? []) if (!snapshots.has(link.graph)) ids.add(link.graph);
+      }
+      return [...ids];
+    },
+
     /** Count a graph from the list without reading it (an older snapshot on first load). */
     noteSummary(summary, at) {
       if (!graphParty.has(summary.id)) graphParty.set(summary.id, partyKey(summary));
@@ -84,25 +110,34 @@ export function createModel({ workingMs = 60_000 } = {}) {
     currentGraphIds: () => [...parties.values()].map(entry => entry.graph.id),
     hasGraph: id => published.has(id),
 
-    /** Questions answered by a link from any current graph, as node keys. */
+    /**
+     * Questions answered by a link from any current graph, as node keys. The link
+     * names one snapshot; it answers the current question only when that snapshot's
+     * question has the same label and recipient, so a reused ID is not closed.
+     */
     answeredByLink() {
       const answered = new Set();
       for (const { graph } of parties.values()) {
         for (const link of graph.packet.links ?? []) {
           const target = link.type === 'answers' && linkTarget(link);
-          if (target) answered.add(nodeKey(target.party, target.id));
+          const asked = target && snapshots.get(link.graph)?.packet.nodes.find(node => node.id === link.to);
+          const current = asked && parties.get(target.party)?.graph.packet.nodes.find(node => node.id === link.to);
+          if (current && current.label === asked.label && (current.to ?? null) === (asked.to ?? null)) {
+            answered.add(nodeKey(target.party, target.id));
+          }
         }
       }
       return answered;
     },
 
-    /** The office: one agent per party, with its state at `now`. */
-    agents(now) {
+    /** The office: one agent per party (only today's with todayOnly), with its state at `now`. */
+    agents(now, { todayOnly = false } = {}) {
       const answered = this.answeredByLink();
-      return [...parties.values()].map(entry => {
-        const open = new Set(entry.graph.openQuestionIds ?? []);
+      const today = startOfDay(now);
+      return [...parties.values()].filter(entry => !todayOnly || entry.at >= today).map(entry => {
+        const open = openQuestions(entry, answered);
         const waiting = entry.graph.packet.nodes.some(node => node.kind === 'question' && open.has(node.id)
-          && node.to && node.to !== entry.party && !answered.has(nodeKey(entry.key, node.id)));
+          && node.to && node.to !== entry.party);
         const state = now - entry.at < workingMs ? 'working' : waiting ? 'waiting' : 'idle';
         return { key: entry.key, provider: entry.provider, label: entry.label, state };
       });
@@ -113,6 +148,7 @@ export function createModel({ workingMs = 60_000 } = {}) {
       const answered = this.answeredByLink();
       // Columns keep the order in which parties first published, so they never jump.
       const columns = [...parties.values()].sort((a, b) => a.firstAt - b.firstAt).map(entry => {
+        const open = openQuestions(entry, answered);
         const superseded = new Set(entry.graph.packet.edges.filter(edge => edge.type === 'supersedes').map(edge => edge.to));
         const nodes = [...entry.graph.packet.nodes]
           .sort((a, b) => kindOrder.indexOf(a.kind) - kindOrder.indexOf(b.kind))
@@ -126,7 +162,7 @@ export function createModel({ workingMs = 60_000 } = {}) {
             evidenceLines: node.evidenceLines,
             mark: nodeMark(node),
             superseded: node.kind === 'decision' && superseded.has(node.id),
-            answered: node.kind === 'question' && answered.has(nodeKey(entry.key, node.id)),
+            answered: node.kind === 'question' && node.status === 'open' && !open.has(node.id),
           }));
         return { key: entry.key, label: entry.label, provider: entry.provider, sessionId: entry.sessionId, graphId: entry.graph.id, nodes };
       });

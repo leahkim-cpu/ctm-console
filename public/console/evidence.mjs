@@ -20,8 +20,19 @@ export function createEvidence(panel, { loadSession }) {
   const status = panel.querySelector('#evidence-status');
   const turns = panel.querySelector('#evidence-turns');
   let request = 0;
+  const intro = { heading: heading.textContent, status: status.textContent };
 
   return {
+    /** Back to the empty panel, with an optional note. */
+    clear(note) {
+      request += 1;
+      heading.textContent = intro.heading;
+      meta.replaceChildren();
+      turns.replaceChildren();
+      status.textContent = note ?? intro.status;
+      panel.classList.remove('is-open');
+    },
+
     async show({ entry, node }) {
       const ticket = ++request;
       heading.textContent = visibleText(node.label);
@@ -51,7 +62,6 @@ export function createEvidence(panel, { loadSession }) {
       } catch (error) {
         if (ticket === request) status.textContent = `Could not read the transcript: ${error.message}`;
       }
-      heading.focus({ preventScroll: true });
     },
   };
 }

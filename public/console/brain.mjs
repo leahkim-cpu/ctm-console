@@ -14,7 +14,7 @@ function el(tag, className, text) {
 
 function nodeMeta(node) {
   if (node.superseded) return 'superseded';
-  if (node.kind === 'question') return node.answered ? `answered · to ${node.to}` : `open · to ${node.to}`;
+  if (node.kind === 'question') return `${node.answered ? 'answered' : node.status} · to ${node.to}`;
   return node.status ?? '';
 }
 

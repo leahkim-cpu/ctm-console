@@ -77,7 +77,8 @@ function renderNumbers() {
 }
 
 function renderOffice() {
-  office.update(model.agents(Date.now()));
+  // Live, the office holds the parties that published today; the demo is all today.
+  office.update(model.agents(Date.now(), { todayOnly: !demo }));
 }
 
 function onGraph(event, { initial }) {
@@ -87,6 +88,7 @@ function onGraph(event, { initial }) {
   brain.render(model.graph(), { pop, changed });
   renderOffice();
   renderNumbers();
+  reconcileSelection(new Set(moved.changed));
   if (initial) return;
 
   const name = partyName(moved.party);
@@ -108,18 +110,43 @@ function onGraph(event, { initial }) {
   });
 }
 
+let selectedKey = null;
+
 async function select(key) {
   const found = model.node(key);
   if (!found) return;
+  selectedKey = key;
   brain.select(key);
-  await evidence.show(found);
   if (matchMedia('(max-width: 900px)').matches) $('#evidence').scrollIntoView({ block: 'start' });
+  await evidence.show(found);
+}
+
+/** Keep the open proof in step with the graph: reread it if its node changed. */
+function reconcileSelection(changed) {
+  if (!selectedKey) return;
+  const found = model.node(selectedKey);
+  if (!found) {
+    selectedKey = null;
+    evidence.clear('That node is no longer in the current graph of its agent.');
+  } else if (changed.has(selectedKey)) {
+    brain.select(selectedKey);
+    evidence.show(found);
+  }
+}
+
+/** Redraw after something other than a publish (a meter or a linked graph arrived). */
+function refresh() {
+  brain.render(model.graph());
+  renderOffice();
+  renderNumbers();
 }
 
 function resetView() {
   model = createModel({ workingMs: workingMs / (demo ? speed : 1) });
   brain.render(model.graph());
   activity.replaceChildren();
+  selectedKey = null;
+  evidence?.clear();
   renderOffice();
   renderNumbers();
 }
@@ -172,6 +199,7 @@ function startLive() {
     model,
     onGraph,
     onNote(row, at) { model.noteSummary(row, at); renderNumbers(); },
+    onMeter: refresh,
     onStatus(result) {
       status.textContent = result.ok
         ? `Live: watching the ledger, read ${new Date(result.at).toLocaleTimeString()}`
@@ -180,7 +208,8 @@ function startLive() {
   });
   evidence = createEvidence($('#evidence'), { loadSession: id => source.session(id) });
   source.start();
-  setInterval(renderOffice, 1000);
+  // States age and the day can turn over with no new publish.
+  setInterval(() => { renderOffice(); renderNumbers(); }, 1000);
 }
 
 if (demo) startDemo().catch(error => { status.textContent = `The demo could not load: ${error.message}`; });
