@@ -29,15 +29,22 @@ const startOfDay = at => {
  *   A graph whose read fails is kept and tried again on the next tick.
  * - A graph appears as soon as it is read; its meter (GET .../context) is read after,
  *   and a failed meter is tried again on later ticks.
- * - Graphs that current graphs link to are read once, so links and answers resolve.
+ * - Graphs that current graphs link to are read once, so links and answers resolve;
+ *   a failed read is tried again after a growing pause of up to 30 ticks.
+ * - Each listed row gets a sequence number from its place in the list, so a snapshot
+ *   read late (after a retry) never replaces a newer one, even with equal times.
  * Every request has an 8 second deadline. `fetchJson` and `now` are for tests.
  */
-export function liveSource({ model, onGraph, onNote, onMeter, onStatus, fetchJson = getJson, now = Date.now, pollMs = 2000 }) {
+export function liveSource({ model, onGraph, onNote, onMeter, onLinked, onStatus, fetchJson = getJson, now = Date.now, pollMs = 2000 }) {
   const providers = new Map();
   const sessions = new Map();
   const retry = new Map(); // graph ID -> list row whose read failed
   const pendingMeters = new Set();
-  const linkFailures = new Map();
+  const linkFailures = new Map(); // graph ID -> { count, nextTick }
+  const sequence = new Map(); // graph ID -> place in publish order, from the list
+  const appliedSeq = new Map(); // party key -> sequence of the graph drawn for it
+  let lastSeq = 0;
+  let tickCount = 0;
   let timer;
   let stopped = false;
   let first = true;
@@ -51,10 +58,16 @@ export function liveSource({ model, onGraph, onNote, onMeter, onStatus, fetchJso
     return providers.get(sessionId);
   }
 
-  /** List rows newest first, down to the start of today (first read) or a seen graph. */
+  /**
+   * List rows newest first, down to the start of today (first read) or a seen graph.
+   * On the first read the newest row from before today is returned as `boundary`, so
+   * it can be marked seen: otherwise a day with no publish yet would have no seen row
+   * and the next poll would replay old graphs as live ones.
+   */
   async function listRows() {
     const today = startOfDay(now());
     const rows = [];
+    let stop = null;
     let after = null;
     for (let page = 0; page < maxPages; page += 1) {
       const query = new URLSearchParams({ limit: '100' });
@@ -63,20 +76,33 @@ export function liveSource({ model, onGraph, onNote, onMeter, onStatus, fetchJso
       let boundary = false;
       for (const row of graphs) {
         boundary = first ? Date.parse(row.createdAt) < today : model.hasGraph(row.id);
-        if (boundary) break;
+        if (boundary) {
+          stop = row;
+          break;
+        }
         rows.push(row);
       }
       if (boundary || !next) break;
       after = next;
     }
-    return rows;
+    for (const row of [...rows].reverse()) if (!sequence.has(row.id)) sequence.set(row.id, ++lastSeq);
+    return { rows, boundary: first ? stop : null };
   }
+
+  const partyOf = row => row.party ?? `session:${row.sessionId}`;
 
   const atOf = row => Date.parse(row.createdAt) || now();
 
   async function readGraph(row, initial) {
+    const seq = sequence.get(row.id);
+    if ((appliedSeq.get(partyOf(row)) ?? 0) > seq) {
+      // A newer snapshot of this party is already drawn: only count this one.
+      onNote(row, atOf(row));
+      return;
+    }
     const { graph } = await fetchJson(`/api/graphs/${row.id}`);
     const event = { summary: row, graph, meter: null, provider: await provider(row.sessionId), at: atOf(row) };
+    appliedSeq.set(partyOf(row), seq);
     onGraph(event, { initial });
     pendingMeters.add(row.id);
   }
@@ -102,21 +128,26 @@ export function liveSource({ model, onGraph, onNote, onMeter, onStatus, fetchJso
   async function readLinked() {
     let read = 0;
     for (const id of model.unknownLinkedGraphs()) {
-      if ((linkFailures.get(id) ?? 0) >= 3 || read >= maxLinkedReads) continue;
+      const failure = linkFailures.get(id);
+      if ((failure && failure.nextTick > tickCount) || read >= maxLinkedReads) continue;
       read += 1;
       try {
         model.noteGraph((await fetchJson(`/api/graphs/${id}`)).graph);
-        onMeter?.();
+        linkFailures.delete(id);
+        onLinked?.();
       } catch {
-        linkFailures.set(id, (linkFailures.get(id) ?? 0) + 1);
+        const count = (failure?.count ?? 0) + 1;
+        linkFailures.set(id, { count, nextTick: tickCount + Math.min(2 ** count, 30) });
       }
     }
   }
 
   async function tick() {
     let failed = 0;
+    tickCount += 1;
     try {
-      const rows = await listRows();
+      const { rows, boundary } = await listRows();
+      if (boundary) onNote(boundary, atOf(boundary));
       if (first) {
         // Only the newest graph of each party is drawn; older ones are counted.
         const newest = new Map();
@@ -135,8 +166,8 @@ export function liveSource({ model, onGraph, onNote, onMeter, onStatus, fetchJso
         if (failed === 0) first = false;
       } else {
         for (const row of rows) if (!retry.has(row.id)) retry.set(row.id, row);
-        // Oldest first, so a party's snapshots arrive in publish order.
-        for (const row of [...retry.values()].sort((a, b) => atOf(a) - atOf(b))) {
+        // In publish order, so a party's snapshots arrive oldest first.
+        for (const row of [...retry.values()].sort((a, b) => sequence.get(a.id) - sequence.get(b.id))) {
           try {
             await readGraph(row, false);
             retry.delete(row.id);

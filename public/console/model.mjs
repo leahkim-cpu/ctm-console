@@ -55,6 +55,7 @@ export function createModel({ workingMs = 60_000 } = {}) {
       snapshots.set(graph.id, graph);
       if (!published.has(graph.id)) published.set(graph.id, at);
       const previous = parties.get(key);
+      // The live source orders snapshots by their place in the list; time is a backstop.
       if (previous && previous.at > at) return { party: key, added: [], changed: [], read: [] };
       if (previous?.graph.id === graph.id) return { party: key, added: [], changed: [], read: [] };
 
@@ -113,7 +114,7 @@ export function createModel({ workingMs = 60_000 } = {}) {
     /**
      * Questions answered by a link from any current graph, as node keys. The link
      * names one snapshot; it answers the current question only when that snapshot's
-     * question has the same label and recipient, so a reused ID is not closed.
+     * question has the same label, recipient and cited lines, so a reused ID is not closed.
      */
     answeredByLink() {
       const answered = new Set();
@@ -122,7 +123,8 @@ export function createModel({ workingMs = 60_000 } = {}) {
           const target = link.type === 'answers' && linkTarget(link);
           const asked = target && snapshots.get(link.graph)?.packet.nodes.find(node => node.id === link.to);
           const current = asked && parties.get(target.party)?.graph.packet.nodes.find(node => node.id === link.to);
-          if (current && current.label === asked.label && (current.to ?? null) === (asked.to ?? null)) {
+          if (current && current.label === asked.label && (current.to ?? null) === (asked.to ?? null)
+            && JSON.stringify(current.evidenceLines) === JSON.stringify(asked.evidenceLines)) {
             answered.add(nodeKey(target.party, target.id));
           }
         }

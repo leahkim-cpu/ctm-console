@@ -38,15 +38,19 @@ export function createBrain(container, { onSelect }) {
       button.dataset.key = node.key;
       button.append(el('span', 'node-kind'), el('span', 'node-label'), el('span', 'node-meta'));
       button.addEventListener('click', () => onSelect(node.key));
+      // Drop the animation class when it ends, so a later redraw does not replay it.
+      button.addEventListener('animationend', () => button.classList.remove('pop', 'pulse'));
       buttons.set(node.key, button);
     }
     const [kind, label, meta] = button.children;
     kind.textContent = node.kind;
     label.textContent = clip(node.label, 90);
     meta.textContent = nodeMeta(node);
+    // An animation still running (pop or pulse) survives a redraw; animationend drops it.
+    const running = ['pop', 'pulse'].filter(name => button.classList.contains(name));
     button.className = ['node', `kind-${node.kind}`, `mark-${node.mark ?? 'none'}`,
       node.superseded ? 'is-superseded' : '', node.answered ? 'is-answered' : '',
-      node.key === selected ? 'is-selected' : ''].filter(Boolean).join(' ');
+      node.key === selected ? 'is-selected' : '', ...running].filter(Boolean).join(' ');
     button.dataset.mark = node.mark ?? 'none';
     button.setAttribute('aria-pressed', String(node.key === selected));
     const state = nodeMeta(node);
@@ -106,7 +110,6 @@ export function createBrain(container, { onSelect }) {
         for (const node of column.nodes) {
           const item = el('li');
           const button = nodeButton(node);
-          button.classList.remove('pop', 'pulse');
           if (pop.has(node.key)) button.classList.add('pop');
           else if (changed.has(node.key)) button.classList.add('pulse');
           item.append(button);

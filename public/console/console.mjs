@@ -111,11 +111,13 @@ function onGraph(event, { initial }) {
 }
 
 let selectedKey = null;
+let selectedSession = null;
 
 async function select(key) {
   const found = model.node(key);
   if (!found) return;
   selectedKey = key;
+  selectedSession = found.entry.sessionId;
   brain.select(key);
   if (matchMedia('(max-width: 900px)').matches) $('#evidence').scrollIntoView({ block: 'start' });
   await evidence.show(found);
@@ -128,7 +130,9 @@ function reconcileSelection(changed) {
   if (!found) {
     selectedKey = null;
     evidence.clear('That node is no longer in the current graph of its agent.');
-  } else if (changed.has(selectedKey)) {
+  } else if (changed.has(selectedKey) || found.entry.sessionId !== selectedSession) {
+    // The node changed, or its agent now publishes from another transcript.
+    selectedSession = found.entry.sessionId;
     brain.select(selectedKey);
     evidence.show(found);
   }
@@ -199,7 +203,8 @@ function startLive() {
     model,
     onGraph,
     onNote(row, at) { model.noteSummary(row, at); renderNumbers(); },
-    onMeter: refresh,
+    onMeter: renderNumbers,
+    onLinked: refresh,
     onStatus(result) {
       status.textContent = result.ok
         ? `Live: watching the ledger, read ${new Date(result.at).toLocaleTimeString()}`
