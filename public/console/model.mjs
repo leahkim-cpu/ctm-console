@@ -55,8 +55,8 @@ export function createModel({ workingMs = 60_000 } = {}) {
       snapshots.set(graph.id, graph);
       if (!published.has(graph.id)) published.set(graph.id, at);
       const previous = parties.get(key);
-      // The live source orders snapshots by their place in the list; time is a backstop.
-      if (previous && previous.at > at) return { party: key, added: [], changed: [], read: [] };
+      // Both sources deliver snapshots in publish order (the live one by place in the
+      // ledger list, not by time, since clocks can move back), so the last one wins.
       if (previous?.graph.id === graph.id) return { party: key, added: [], changed: [], read: [] };
 
       const before = previous ? nodeLabels(previous.graph) : new Map();
