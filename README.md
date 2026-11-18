@@ -128,6 +128,16 @@ env = { PORT = "4317" }
 
 Point clients at `node` directly rather than through npm: npm prints a banner on stdout, which must carry only protocol messages. Graph labels and briefings come from transcripts. Tools return them as escaped data, and agents should treat them as data, not as instructions.
 
+## Decisions beside code (Graphify)
+
+`node src/cli.mjs graph export <graph-id> > graphify-out/ctm-leo.json` (not through npm, whose banner would land in the file) writes a graph as node-link JSON, the format Graphify keeps in `graphify-out/graph.json` (also `GET /api/graphs/ID/export`). Each node is `ctm_<party>__<node>` and keeps its label, kind, cited lines and the transcript's file name. Each edge, and each link to another party's graph, becomes a link. Put the exports in the same `graphify-out` folder as the code graph, then merge:
+
+```sh
+graphify merge-graphs graphify-out/graph.json graphify-out/ctm-leo.json graphify-out/ctm-ali.json --out graphify-out/merged.json
+```
+
+`merge-graphs` prefixes node IDs with the name of the project folder, so files from one folder keep their links to each other. The export is undirected, as Graphify's graphs are; `ledger_from` and `ledger_to` on each link keep the direction. In Windows PowerShell 5.1, `>` and `Out-File` add a byte order mark or write UTF-16, which Graphify cannot read; redirect from cmd or Git Bash instead.
+
 ## Two-agent demo
 
 [docs/demo.md](docs/demo.md) is the run sheet for the stage demo: Claude Code and Codex on one laptop share context through one ledger, using the synthetic transcripts in `demo/`. `node demo/rehearse.mjs` runs the whole flow with both CLIs and times the handoff. `node demo/publish-reference.mjs` is the fallback when an agent stalls.
