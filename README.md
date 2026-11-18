@@ -114,10 +114,10 @@ One command connects both agents:
 
 ```sh
 npm run ledger -- install            # add --dry-run to see the changes first
-npm run ledger -- uninstall          # undo exactly that
+npm run ledger -- uninstall          # take the instruction blocks out again
 ```
 
-`install` registers the server with each agent's own CLI at user scope (`claude mcp add --scope user` and `codex mcp add`), and adds a short marked block to each agent's user instruction file: `~/.claude/CLAUDE.md` and `AGENTS.md` in `CODEX_HOME` (default `~/.codex`). The block tells the agent to check the ledger before asking you to repeat context. A server already registered under the name `context-ledger` is left as it is. Running it again replaces the block rather than adding another. `--agent claude` or `--agent codex` limits it to one agent, and `CONTEXT_LEDGER_CLAUDE_BIN` or `CONTEXT_LEDGER_CODEX_BIN` names a CLI that is not on `PATH`. A `PORT` other than 4317 is passed on to both servers.
+`install` registers the server with each agent's own CLI at user scope (`claude mcp add --scope user` and `codex mcp add`), and adds a short marked block to each agent's user instruction file: `~/.claude/CLAUDE.md` and `AGENTS.md` in `CODEX_HOME` (default `~/.codex`). The block tells the agent to check the ledger before asking you to repeat context. A server already registered under the name `context-ledger` is left as it is. Running it again replaces the block rather than adding another. `--agent claude` or `--agent codex` limits it to one agent, and `CONTEXT_LEDGER_CLAUDE_BIN` or `CONTEXT_LEDGER_CODEX_BIN` names a CLI that is not on `PATH`. A `PORT` other than 4317 is passed on to both servers. `uninstall` removes the blocks and prints the commands that remove the two registrations, for you to run: neither CLI shows an entry exactly enough for the ledger to be sure it is the one install made.
 
 To set it up by hand instead, for Claude Code:
 
