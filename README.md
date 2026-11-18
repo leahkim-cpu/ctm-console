@@ -36,6 +36,8 @@ npm run --silent ledger -- handoff SESSION_ID
 
 Replace `SESSION_ID` with an ID from the search results. The handoff is Markdown with the source filename and original JSONL line number for each turn. Share the selected packet with the receiving agent when you want it to have that context.
 
+Threads from T3 Code v0.1.10 can be imported from a copy of its database that you make: `npm run --silent ledger -- import-t3 COPY --list`, then without `--list`. Only threads run by Claude Code or Codex are imported. See [Importing T3 Code threads](docs/integrations/t3code-import.md).
+
 ## Data and scope
 
 The server binds to IPv4 loopback and stores data in `.context-ledger/ledger.sqlite`. Set `PORT` or `CONTEXT_LEDGER_DB` to override those defaults. The database contains transcript text. Back it up or remove it as needed when the app is stopped.
