@@ -130,13 +130,17 @@ Point clients at `node` directly rather than through npm: npm prints a banner on
 
 ## Decisions beside code (Graphify)
 
-`node src/cli.mjs graph export <graph-id> > graphify-out/ctm-leo.json` (not through npm, whose banner would land in the file) writes a graph as node-link JSON, the format Graphify keeps in `graphify-out/graph.json` (also `GET /api/graphs/ID/export`). Each node is `ctm_<party>__<node>` and keeps its label, kind, cited lines and the transcript's file name. Each edge, and each link to another party's graph, becomes a link. Put the exports in the same `graphify-out` folder as the code graph, then merge:
+The ledger can export graphs as node-link JSON, the format Graphify keeps in `graphify-out/graph.json`, so its `merge-graphs` can put decisions beside a code graph. Put every graph you want together, such as both parties of a room, in **one** export: Graphify keeps links between graphs only inside one file. From the folder that holds the code graph, with the ledger running and two graph IDs from `graph_list`:
 
 ```sh
-graphify merge-graphs graphify-out/graph.json graphify-out/ctm-leo.json graphify-out/ctm-ali.json --out graphify-out/merged.json
+LEO=<graph id>; ALI=<graph id>
+node /path/to/context-ledger/src/cli.mjs graph export "$LEO" "$ALI" > graphify-out/ctm-decisions.json
+graphify merge-graphs graphify-out/graph.json graphify-out/ctm-decisions.json --out graphify-out/merged.json
 ```
 
-`merge-graphs` prefixes node IDs with the name of the project folder, so files from one folder keep their links to each other. The export is undirected, as Graphify's graphs are; `ledger_from` and `ledger_to` on each link keep the direction. In Windows PowerShell 5.1, `>` and `Out-File` add a byte order mark or write UTF-16, which Graphify cannot read; redirect from cmd or Git Bash instead.
+Run the CLI with `node`, not through npm, whose banner would land in the file. Redirect from Git Bash, cmd or PowerShell 7.4 or later: Windows PowerShell 5.1 writes a byte order mark or UTF-16, which Graphify cannot read. `GET /api/export?graph=ID&graph=ID` returns the same JSON for download.
+
+Each node is `ctm_<graph>__<node>` and keeps its label, kind, party, cited lines and the transcript's file name. Each edge, and each link between two graphs of the export, becomes a link; links to graphs left out are counted in `graph.links_left_out`. The export is undirected, as Graphify's graphs are, and `merge-graphs` may swap a link's ends; `ledger_from` and `ledger_to` keep the direction.
 
 ## Two-agent demo
 
