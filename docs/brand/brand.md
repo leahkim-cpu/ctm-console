@@ -72,7 +72,7 @@ Pip keeps the ledger. It is an index card in Electric Violet, with a folded corn
   - make it an animal, or use Capy's capybara or manga styling. Capy's look is theirs; the console direction takes only its warmth.
   - recolour or stretch it.
   - At 24 px or smaller, use the CTM mark instead, with the state word.
-- **Colours** are the brand palette, plus the illustration shades used for the folded corner and ruled lines (Soft Violet), the feet and arms (`#5b2bd4`) and the question mark (`#8a4f00`).
+- **Colours** are the brand palette (Soft Violet for the folded corner and ruled lines) and White as a neutral, plus two illustration colours: `#5b2bd4` for the feet and arms and `#8a4f00` for the question mark.
 
 ### Putting Pip in a page
 
