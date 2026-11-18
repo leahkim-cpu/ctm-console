@@ -25,7 +25,9 @@ npm ci
 npm start
 ```
 
-Open http://127.0.0.1:4317. Choose the source agent and a JSONL file, then select **Import transcript**. Search terms are case-insensitive, and every term must appear somewhere in the session. The agent filter limits the results to Claude Code or Codex.
+`npm start` prints a one-time sign-in link (`http://127.0.0.1:4317/login?code=...`). Open it within 60 seconds: it works once and signs the browser in with a cookie for 12 hours, or until the server restarts. For a new link, run `npm run --silent ledger -- login` (with the same `PORT` and `CONTEXT_LEDGER_DB` as the server). Without signing in, the page loads but every request says how to sign in.
+
+Then choose the source agent and a JSONL file, then select **Import transcript**. Search terms are case-insensitive, and every term must appear somewhere in the session. The agent filter limits the results to Claude Code or Codex.
 
 While the server is running, search and export from a second terminal:
 
@@ -38,7 +40,9 @@ Replace `SESSION_ID` with an ID from the search results. The handoff is Markdown
 
 ## Data and scope
 
-The server binds to IPv4 loopback and stores data in `.context-ledger/ledger.sqlite`. Set `PORT` or `CONTEXT_LEDGER_DB` to override those defaults. The database contains transcript text. Back it up or remove it as needed when the app is stopped.
+The server binds to IPv4 loopback and stores data in `.context-ledger/ledger.sqlite`. Set `PORT` or `CONTEXT_LEDGER_DB` to override those defaults. The database contains transcript text.
+
+Every request outside the page itself needs an access token. At each start the server writes a new random token to a file next to the database (`.context-ledger/ledger.sqlite.token` by default), readable only by you on macOS and Linux; on Windows the file takes the permissions of its folder. The CLI and the MCP adapter read that file and send the token; the browser never sees it and uses the sign-in cookie instead. If you start the server with `CONTEXT_LEDGER_DB`, give the CLI and the MCP adapter the same value. The token keeps out other users on the machine and browser pages; it does not protect against programs running as you, which can read the file. Back it up or remove it as needed when the app is stopped.
 
 The first version imports conversational text from supported Claude Code and Codex JSONL records. It skips tool outputs, internal instructions, and unsupported records. Select files explicitly. Automatic discovery, account sync, images, tool replay, and team permissions are outside the current version. The HTTP import request is capped at 8 MiB, including JSON encoding.
 
@@ -106,7 +110,7 @@ Agents can open and read rooms (`POST /api/rooms` with `{"graphIds": [A, B]}`, a
 
 ## Connect an agent over MCP
 
-`src/mcp.mjs` is a stdio MCP server that forwards to the running ledger. Start the ledger with `npm start` first; the MCP server reads `PORT` (default 4317) to find it. It offers `session_search` and `session_read` (find an imported session and read its numbered turns, the line numbers a graph must cite), `graph_schema`, `graph_publish`, `graph_read`, `context_for`, `room_open` and `room_read`, `graph_list` and `room_list` (find graphs and rooms without being given an ID, newest first), and the latent tools. Agents can open and read rooms, but only people confirm room proposals, in the browser.
+`src/mcp.mjs` is a stdio MCP server that forwards to the running ledger. Start the ledger with `npm start` first; the MCP server reads `PORT` (default 4317) to find it, and reads the ledger's access token from the file next to `CONTEXT_LEDGER_DB` (default: `.context-ledger/ledger.sqlite` in this repository) on each call. It offers `session_search` and `session_read` (find an imported session and read its numbered turns, the line numbers a graph must cite), `graph_schema`, `graph_publish`, `graph_read`, `context_for`, `room_open` and `room_read`, `graph_list` and `room_list` (find graphs and rooms without being given an ID, newest first), and the latent tools. Agents can open and read rooms, but only people confirm room proposals, in the browser.
 
 Every tool result is at most 40,000 characters of escaped text, because agents cut longer results without saying so. Agents cap tokens, so digits and punctuation count as two characters and characters outside ASCII as four: a page of code, JSON or Han script is smaller, at about the same token count as 40,000 characters of English. A longer result comes in pages and says how to get the rest: a JSON result has `more` as its first key (`more.fromItem` for `graph_read` and `room_read`, `more.after` for the lists), and a partial text result starts with a line `[Partial result: ...]` and ends with the same note, which names the arguments to send next (`fromLine`, `fromOffset`, `fromPath`). Only that first line marks a text result partial: data can end a result but never starts one. A result that fits is exactly what it was before paging. `GET /api/graphs` and `GET /api/rooms` back the two lists and take `limit` (1 to 100, default 20), `after` and the filters `sessionId`, `graphId` and `party`. `GET /api/sessions` pages only when it gets `limit` or `after`, so the browser and the CLI still get every match. The ledger file carries a schema version (`PRAGMA user_version`) and upgrades an older file in place; graphs and rooms stored before that list with `createdAt: null`.
 
@@ -122,7 +126,7 @@ Codex, in `~/.codex/config.toml`:
 [mcp_servers.context-ledger]
 command = "node"
 args = ["/absolute/path/to/context-ledger/src/mcp.mjs"]
-# Only needed when the ledger runs on another port.
+# Only needed when the ledger runs on another port or database (use an absolute path).
 env = { PORT = "4317" }
 ```
 
