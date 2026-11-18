@@ -110,7 +110,16 @@ Agents can open and read rooms (`POST /api/rooms` with `{"graphIds": [A, B]}`, a
 
 Every tool result is at most 40,000 characters of escaped text, because agents cut longer results without saying so. Agents cap tokens, so digits and punctuation count as two characters and characters outside ASCII as four: a page of code, JSON or Han script is smaller, at about the same token count as 40,000 characters of English. A longer result comes in pages and says how to get the rest: a JSON result has `more` as its first key (`more.fromItem` for `graph_read` and `room_read`, `more.after` for the lists), and a partial text result starts with a line `[Partial result: ...]` and ends with the same note, which names the arguments to send next (`fromLine`, `fromOffset`, `fromPath`). Only that first line marks a text result partial: data can end a result but never starts one. A result that fits is exactly what it was before paging. `GET /api/graphs` and `GET /api/rooms` back the two lists and take `limit` (1 to 100, default 20), `after` and the filters `sessionId`, `graphId` and `party`. `GET /api/sessions` pages only when it gets `limit` or `after`, so the browser and the CLI still get every match. The ledger file carries a schema version (`PRAGMA user_version`) and upgrades an older file in place; graphs and rooms stored before that list with `createdAt: null`.
 
-Claude Code:
+One command connects both agents:
+
+```sh
+npm run ledger -- install            # add --dry-run to see the changes first
+npm run ledger -- uninstall          # undo exactly that
+```
+
+`install` registers the server with each agent's own CLI at user scope (`claude mcp add --scope user` and `codex mcp add`), and adds a short marked block to each agent's user instruction file: `~/.claude/CLAUDE.md` and `AGENTS.md` in `CODEX_HOME` (default `~/.codex`). The block tells the agent to check the ledger before asking you to repeat context. A server already registered under the name `context-ledger` is left as it is. Running it again replaces the block rather than adding another. `--agent claude` or `--agent codex` limits it to one agent, and `CONTEXT_LEDGER_CLAUDE_BIN` or `CONTEXT_LEDGER_CODEX_BIN` names a CLI that is not on `PATH`. A `PORT` other than 4317 is passed on to both servers.
+
+To set it up by hand instead, for Claude Code:
 
 ```sh
 claude mcp add context-ledger -- node /absolute/path/to/context-ledger/src/mcp.mjs
