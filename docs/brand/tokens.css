@@ -1,0 +1,52 @@
+/* CTM brand tokens (card U2). The brand colours are the CTM site's
+ * (src/styles/tokens.css in the CTM repository): Deep Charcoal, Electric Violet and
+ * Acid Lime. The light set is for the console and other local pages; the dark set
+ * matches the site. Every text pair here passes WCAG AA (4.5:1); see docs/brand/brand.md
+ * and tests/brand.test.mjs. */
+:root {
+  /* Brand */
+  --ctm-charcoal: #18181c;
+  --ctm-violet: #723bfa;
+  --ctm-lime: #b9f500;      /* accents and fills only, never under white text */
+  --ctm-paper: #f4f3f7;
+
+  /* Light set (console) */
+  --ctm-bg: #f4f3f7;
+  --ctm-surface: #ffffff;
+  --ctm-text: #18181c;
+  --ctm-text-2: #56535e;
+  --ctm-primary: #723bfa;   /* links and buttons; white text on it */
+  --ctm-primary-strong: #5b2bd4;
+  --ctm-line: #dcd9e3;
+
+  /* Node marks (card G7), as text and as a fill behind the label */
+  --ctm-quoted: #1b6e46;
+  --ctm-quoted-fill: #e3f4ea;
+  --ctm-inferred: #8a4f00;
+  --ctm-inferred-fill: #fbeed9;
+
+  /* Agent states in the console office */
+  --ctm-working: #723bfa;
+  --ctm-waiting: #8a4f00;
+  --ctm-idle: #56535e;
+
+  /* Type: Inter Tight where installed, as on the site; the console has no web fonts. */
+  --ctm-font-sans: "Inter Tight", Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --ctm-font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* Dark set (site, video) */
+.ctm-dark {
+  --ctm-bg: #18181c;
+  --ctm-surface: #222228;
+  --ctm-text: #f4f3f7;
+  --ctm-text-2: #b7b4c0;
+  --ctm-primary: #9e7bff;   /* violet for text on charcoal */
+  --ctm-primary-strong: #723bfa;
+  --ctm-line: #34343c;
+  --ctm-quoted: #7ccf8f;
+  --ctm-inferred: #f2b049;
+  --ctm-working: #9e7bff;
+  --ctm-waiting: #f2b049;
+  --ctm-idle: #b7b4c0;
+}
