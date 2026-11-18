@@ -27,6 +27,12 @@ npm start
 
 Open http://127.0.0.1:4317. Choose the source agent and a JSONL file, then select **Import transcript**. Search terms are case-insensitive, and every term must appear somewhere in the session. The agent filter limits the results to Claude Code or Codex.
 
+The browser takes files under 8 MiB. Import a larger one from a terminal. The command reads the file as a stream and writes to the same database, whether or not the server is running:
+
+```sh
+npm run --silent ledger -- import --provider claude path/to/session.jsonl
+```
+
 While the server is running, search and export from a second terminal:
 
 ```sh
