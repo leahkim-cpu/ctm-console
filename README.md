@@ -36,6 +36,8 @@ npm run --silent ledger -- search --provider claude deployment
 npm run --silent ledger -- handoff SESSION_ID
 ```
 
+Every session belongs to a project. The browser imports into `default`; `POST /api/import` takes an optional `project` slug (lowercase letters, digits and single hyphens, at most 64 characters) and creates the project on first use. `--project acme` on `search`, or `project=acme` on `GET /api/sessions`, lists one project. Importing a file that is already stored keeps it in the project it already has.
+
 Replace `SESSION_ID` with an ID from the search results. The handoff is Markdown with the source filename and original JSONL line number for each turn. Share the selected packet with the receiving agent when you want it to have that context.
 
 ## Data and scope
