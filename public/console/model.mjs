@@ -228,10 +228,6 @@ export function visibleText(text) {
   });
 }
 
-/**
- * The turns to show for a node's evidence: each cited message, with the message
- * before and after it, in transcript order.
- */
 const roleNames = { user: 'Person', assistant: 'Agent' };
 const pathText = path => String(path ?? 'unknown').replace(/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/gu, character =>
   [...Array(character.length).keys()].map(index => `${backslash}u` + character.charCodeAt(index).toString(16).padStart(4, '0')).join(''));
@@ -246,6 +242,10 @@ export function turnSpeaker(turn) {
   return roleNames[turn.role] ?? String(turn.role);
 }
 
+/**
+ * The turns to show for a node's evidence: each cited message, with the message
+ * before and after it, in transcript order.
+ */
 export function evidenceTurns(messages, evidenceLines) {
   const cited = new Set(evidenceLines);
   const keep = new Set();

@@ -30,7 +30,7 @@
 .office-more text { fill: var(--office-paper); font-size: 11px; font-weight: 650; }
 
 .oa-shadow { fill: color-mix(in srgb, var(--ctm-text) 12%, transparent); }
-.oa-desk-leg { stroke: var(--office-dark); stroke-width: 3; stroke-linecap: round; }
+.oa-desk-leg { stroke: var(--office-laptop); stroke-width: 3; stroke-linecap: round; }
 .oa-halo { fill: var(--accent); opacity: 0.25; }
 .oa-laptop { fill: var(--office-laptop); }
 .oa-desk-top { fill: var(--office-desk); }

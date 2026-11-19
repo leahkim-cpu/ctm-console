@@ -91,11 +91,12 @@ function buildAgent(provider) {
     el('rect', { x: x * PX, y: y * PX, width: width * PX, height: height * PX, fill }, sprite);
   }
   const desk = el('g', { class: 'oa-desk' }, body);
-  el('rect', { class: 'oa-halo', x: -10, y: -23, width: 20, height: 15, rx: 4 }, desk);
-  el('rect', { class: 'oa-laptop', x: -7.5, y: -20, width: 15, height: 10.5, rx: 1.5 }, desk);
-  el('circle', { class: 'oa-logo', cx: 0, cy: -14.8, r: 1.5 }, desk);
-  el('rect', { class: 'oa-desk-top', x: -17, y: -10, width: 34, height: 3.5, rx: 1 }, desk);
-  el('path', { class: 'oa-desk-leg', d: 'M-14 -6.5V0M14 -6.5V0' }, desk);
+  // Low enough that the laptop covers the sprite's body, never its face.
+  el('rect', { class: 'oa-halo', x: -10, y: -16, width: 20, height: 12, rx: 4 }, desk);
+  el('rect', { class: 'oa-laptop', x: -7.5, y: -14, width: 15, height: 8.5, rx: 1.5 }, desk);
+  el('circle', { class: 'oa-logo', cx: 0, cy: -9.8, r: 1.5 }, desk);
+  el('rect', { class: 'oa-desk-top', x: -17, y: -5.5, width: 34, height: 3, rx: 1 }, desk);
+  el('path', { class: 'oa-desk-leg', d: 'M-14 -2.5V2M14 -2.5V2' }, desk);
   const bubble = el('g', { class: 'oa-bubble' }, body);
   el('rect', { x: 6, y: -60, width: 17, height: 15, rx: 6 }, bubble);
   el('path', { d: 'M9.5 -45.5l-3 5.5 7.5-5.5z' }, bubble);
