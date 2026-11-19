@@ -387,7 +387,12 @@
     "currentDecisionIds": [
      "port-4400"
     ],
-    "openQuestionIds": []
+    "openQuestionIds": [],
+    "quotedNodeIds": [
+     "orbit-live",
+     "port-4400"
+    ],
+    "inferredNodeIds": []
    },
    "meter": {
     "method": "estimate: ceil(UTF-16 code units / 4)",
@@ -471,7 +476,14 @@
     "currentDecisionIds": [
      "port-4400"
     ],
-    "openQuestionIds": []
+    "openQuestionIds": [],
+    "quotedNodeIds": [
+     "orbit-live",
+     "port-4400",
+     "mcp-pairing",
+     "record-video"
+    ],
+    "inferredNodeIds": []
    },
    "meter": {
     "method": "estimate: ceil(UTF-16 code units / 4)",
@@ -526,7 +538,12 @@
     },
     "readyActionIds": [],
     "currentDecisionIds": [],
-    "openQuestionIds": []
+    "openQuestionIds": [],
+    "quotedNodeIds": [
+     "no-sunday",
+     "gpu-time"
+    ],
+    "inferredNodeIds": []
    },
    "meter": {
     "method": "estimate: ceil(UTF-16 code units / 4)",
@@ -638,7 +655,16 @@
     "currentDecisionIds": [
      "port-4317"
     ],
-    "openQuestionIds": []
+    "openQuestionIds": [],
+    "quotedNodeIds": [
+     "orbit-live",
+     "local-only",
+     "port-4317",
+     "port-4400",
+     "mcp-pairing",
+     "record-video"
+    ],
+    "inferredNodeIds": []
    },
    "meter": {
     "method": "estimate: ceil(UTF-16 code units / 4)",
@@ -732,7 +758,14 @@
     "currentDecisionIds": [],
     "openQuestionIds": [
      "which-port"
-    ]
+    ],
+    "quotedNodeIds": [
+     "no-sunday",
+     "gpu-time",
+     "benchmark",
+     "which-port"
+    ],
+    "inferredNodeIds": []
    },
    "meter": {
     "method": "estimate: ceil(UTF-16 code units / 4)",
@@ -865,7 +898,17 @@
     ],
     "openQuestionIds": [
      "gpu-owner"
-    ]
+    ],
+    "quotedNodeIds": [
+     "orbit-live",
+     "local-only",
+     "port-4317",
+     "port-4400",
+     "mcp-pairing",
+     "record-video",
+     "gpu-owner"
+    ],
+    "inferredNodeIds": []
    },
    "meter": {
     "method": "estimate: ceil(UTF-16 code units / 4)",
