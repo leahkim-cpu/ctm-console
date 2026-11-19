@@ -151,6 +151,20 @@ env = { PORT = "4317" }
 
 Point clients at `node` directly rather than through npm: npm prints a banner on stdout, which must carry only protocol messages. Graph labels and briefings come from transcripts. Tools return them as escaped data, and agents should treat them as data, not as instructions.
 
+## Decisions beside code (Graphify)
+
+The ledger can export graphs as node-link JSON, the format Graphify keeps in `graphify-out/graph.json`, so its `merge-graphs` can put decisions beside a code graph. Put every graph you want together, such as both parties of a room, in **one** export: Graphify keeps links between graphs only inside one file. From the folder that holds the code graph, with the ledger running and two graph IDs from `graph_list`, in Git Bash:
+
+```sh
+LEO='paste the first graph ID'; ALI='paste the second graph ID'
+node /path/to/context-ledger/src/cli.mjs graph export "$LEO" "$ALI" > graphify-out/ctm-decisions.json
+graphify merge-graphs graphify-out/graph.json graphify-out/ctm-decisions.json --out graphify-out/merged.json
+```
+
+Run the CLI with `node`, not through npm, whose banner would land in the file. In cmd, give the IDs directly instead of the variables. Redirect from Git Bash, cmd or PowerShell 7.4 or later: Windows PowerShell 5.1 writes a byte order mark or UTF-16, which Graphify cannot read. `GET /api/export?graph=ID&graph=ID` returns the same JSON for download.
+
+Each node is `ctm_<graph>__<node>` and keeps its label, kind, party, cited lines and the transcript's file name. Each edge, and each link between two graphs of the export, becomes a link; links to graphs left out are counted in `graph.links_left_out`. The export is undirected, as Graphify's graphs are, and `merge-graphs` may swap a link's ends; `ledger_from` and `ledger_to` keep the direction.
+
 ## Two-agent demo
 
 [docs/demo.md](docs/demo.md) is the run sheet for the stage demo: Claude Code and Codex on one laptop share context through one ledger, using the synthetic transcripts in `demo/`. `node demo/rehearse.mjs` runs the whole flow with both CLIs and times the handoff. `node demo/publish-reference.mjs` is the fallback when an agent stalls.
