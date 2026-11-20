@@ -4,7 +4,10 @@
 const KEY = 'ctm-console-panels';
 
 function load() {
-  try { return JSON.parse(localStorage.getItem(KEY)) ?? {}; } catch { return {}; }
+  let stored;
+  try { stored = JSON.parse(localStorage.getItem(KEY)); } catch { return {}; }
+  const pick = name => (stored?.[name] === false ? { [name]: false } : {});
+  return stored && typeof stored === 'object' ? { ...pick('evidence'), ...pick('feed') } : {};
 }
 
 function save(state) {

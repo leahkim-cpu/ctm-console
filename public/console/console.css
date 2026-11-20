@@ -266,3 +266,5 @@ mark.turn-text, .turn.is-cited .turn-text { background-image: linear-gradient(va
 @media (max-width: 520px) {
   .sheet { margin: 10px 8px 16px; box-shadow: var(--frame); }
 }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

@@ -123,6 +123,7 @@ export function createBand(section) {
   });
 
   const crewLayer = el('g', {}, svg);
+  const said = section.querySelector('#band-said');
   let bubble = null;
   let bubbleTimer = 0;
   const crew = bandCrew();
@@ -153,7 +154,8 @@ export function createBand(section) {
       const box = svg.viewBox.baseVal;
       const x = Math.min(box.x + box.width - w - 4, Math.max(box.x + 4, member.x - w / 2));
       const y = Math.max(box.y + 2, member.y - 20 * member.scale - 30);
-      bubble = el('g', { class: 'band-bubble', 'shape-rendering': 'crispEdges', role: 'status' }, svg);
+      bubble = el('g', { class: 'band-bubble', 'shape-rendering': 'crispEdges', 'aria-hidden': 'true' }, svg);
+      if (said) said.textContent = member.says;
       pixelBox(bubble, x, y, w, 22, '');
       el('text', { x: x + w / 2, y: y + 15, 'text-anchor': 'middle' }, bubble).textContent = text;
       const shown = bubble;
