@@ -1,9 +1,11 @@
-// CTM Console v0: wires the office, the ledger graph, the evidence panel and the
-// numbers to one source of published graphs. It only reads; see source.mjs.
+// CTM Console: wires the office, the ledger graph, the evidence panel, the activity
+// feed with its counters and the CTM band to one source of published graphs. It only reads; see source.mjs.
 import { createBrain } from './brain.mjs';
+import { createBand } from './ctm-band.mjs';
 import { createEvidence } from './evidence.mjs';
 import { createModel } from './model.mjs';
 import { createOffice, providerNames } from './office.mjs';
+import { createPanels } from './panels.mjs';
 import { demoSource, liveSource } from './source.mjs';
 
 const params = new URLSearchParams(location.search);
@@ -26,6 +28,8 @@ let source;
 let evidence;
 const office = createOffice($('#office'));
 const brain = createBrain($('#brain'), { onSelect: select });
+createBand($('.band'));
+const panels = createPanels(document);
 
 function partyName(key) {
   return model.graph().columns.find(column => column.key === key)?.label ?? key;
@@ -116,6 +120,7 @@ let selectedSession = null;
 async function select(key) {
   const found = model.node(key);
   if (!found) return;
+  panels.show('evidence');
   selectedKey = key;
   selectedSession = found.entry.sessionId;
   brain.select(key);

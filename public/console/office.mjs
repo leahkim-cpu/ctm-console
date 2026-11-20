@@ -3,7 +3,7 @@
 // monitor lit, waiting agents stand beside it with a "?" bubble, idle agents go to the
 // lounge. CSP-safe: every node is built with createElementNS, text goes through
 // textContent, and positions use SVG attributes or CSSOM (never a style attribute).
-import { accessoryPixels, roleOf, spriteKey, spritePixels } from './sprites.mjs';
+import { accessoryPixels, roleOf, spriteKey, spriteMark, spritePixels } from './sprites.mjs';
 import { DESKS, ROOM_H, ROOM_W, besideDesk, drawRoom, el, loungeSpot, seatAt } from './office-furniture.mjs';
 
 export const providers = ['claude', 'codex'];
@@ -66,6 +66,11 @@ function buildAgent(provider, role) {
   const sprite = el('g', { class: 'oa-sprite', transform: `translate(${-8 * PX} ${-19 * PX})`, 'shape-rendering': 'crispEdges' }, fig);
   for (const [x, y, width, height, fill] of [...spritePixels(provider), ...accessoryPixels(provider, role)]) {
     el('rect', { x: x * PX, y: y * PX, width: width * PX, height: height * PX, fill }, sprite);
+  }
+  const mark = spriteMark(provider);
+  if (mark) {
+    const face = el('g', { class: 'oa-mark', transform: `translate(${mark.x * PX} ${mark.y * PX}) scale(${mark.scale * PX})`, 'shape-rendering': 'geometricPrecision' }, sprite);
+    for (const d of mark.paths) el('path', { d, fill: mark.fill }, face);
   }
   const bubble = el('g', { class: 'oa-bubble' }, g);
   el('rect', { x: 4, y: -58, width: 17, height: 15, rx: 6 }, bubble);
