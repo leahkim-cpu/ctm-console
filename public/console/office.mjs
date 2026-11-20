@@ -95,8 +95,17 @@ function restartClass(node, name, ms, holder) {
   holder.timer = setTimeout(() => node.classList.remove(name), ms);
 }
 
+// A newcomer appears at its spot; only later moves slide, so nobody flies in from the room's corner.
 function moveTo(item, [x, y]) {
-  for (const node of [item.g, item.tag]) node.style.setProperty('transform', `translate(${x}px, ${y}px)`);
+  const first = !item.placed;
+  for (const node of [item.g, item.tag]) {
+    if (first) node.style.setProperty('transition', 'none');
+    node.style.setProperty('transform', `translate(${x}px, ${y}px)`);
+  }
+  if (!first) return;
+  item.placed = true;
+  item.g.getBoundingClientRect();
+  for (const node of [item.g, item.tag]) node.style.removeProperty('transition');
 }
 
 // Keep each agent at the desk it already has; give newcomers the lowest free desk.
