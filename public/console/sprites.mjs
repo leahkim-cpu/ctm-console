@@ -58,19 +58,20 @@ export function spritePixels(provider) {
 // Accessories may reach past the 16 x 20 grid (a hat above the head), so they are drawn apart.
 export const ROLES = ['planner', 'builder', 'tester', 'reviewer', 'writer', 'scout'];
 
+// Whole words only, so "codex", "inspector" or "docker" pick no role.
 const ROLE_WORDS = [
-  ['reviewer', /review|audit|critic|check/u],
-  ['tester', /test|qa|verif|eval/u],
-  ['planner', /plan|architect|design|spec/u],
-  ['builder', /build|implement|refactor|fix|code|dev/u],
-  ['writer', /doc|write|copy|note/u],
-  ['scout', /scout|research|explor|search|triage|find/u],
+  ['reviewer', /^(?:review|reviews|reviewer|reviewing|audit|auditor|critic|critique|check|checker)$/u],
+  ['tester', /^(?:test|tests|tester|testing|qa|verify|verifier|eval|evals|evaluator)$/u],
+  ['planner', /^(?:plan|plans|planner|planning|architect|design|designer|spec|specs)$/u],
+  ['builder', /^(?:build|builder|building|implement|implementer|refactor|refactoring|fix|fixer|coder|coding|dev|developer|engineer)$/u],
+  ['writer', /^(?:doc|docs|documentation|write|writer|writing|copy|copywriter|notes)$/u],
+  ['scout', /^(?:scout|research|researcher|explore|explorer|search|triage|finder)$/u],
 ];
 
 /** The role an agent label suggests, or '' when no role word matches. */
 export function roleOf(label) {
-  const text = String(label ?? '').toLowerCase();
-  const hit = ROLE_WORDS.find(([, words]) => words.test(text));
+  const words = String(label ?? '').toLowerCase().split(/[^\p{L}\p{N}]+/u);
+  const hit = ROLE_WORDS.find(([, pattern]) => words.some(word => pattern.test(word)));
   return hit ? hit[0] : '';
 }
 

@@ -108,7 +108,10 @@ function assignDesks(room, shown) {
   }
 }
 
+const observers = new WeakMap();
+
 export function createOffice(svg) {
+  observers.get(svg)?.disconnect();
   svg.replaceChildren();
   svg.classList.add('office-svg');
   svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
@@ -132,7 +135,9 @@ export function createOffice(svg) {
   }
   layout(svg.getBoundingClientRect().width);
   if (typeof ResizeObserver === 'function') {
-    new ResizeObserver((entries) => layout(entries[0].contentRect.width)).observe(svg);
+    const observer = new ResizeObserver((entries) => layout(entries[0].contentRect.width));
+    observer.observe(svg);
+    observers.set(svg, observer);
   }
 
   function paint(item, a, provider) {
@@ -181,11 +186,16 @@ export function createOffice(svg) {
         item.enter = setTimeout(() => fresh.g.classList.remove('is-new'), 700);
         agents.set(a.key, item);
       }
+      // Change layer before moving, and let the browser see the old spot in the new layer,
+      // so the walk between desk and lounge animates instead of jumping.
+      const layer = a.state === 'working' ? room.seated : room.standing;
+      if (item.g.parentNode !== layer) {
+        layer.appendChild(item.g);
+        item.g.getBoundingClientRect();
+      }
+      if (item.tag.parentNode !== room.labels) room.labels.appendChild(item.tag);
       moveTo(item, spot);
       paint(item, a, p);
-      const layer = a.state === 'working' ? room.seated : room.standing;
-      if (item.g.parentNode !== layer) layer.appendChild(item.g);
-      if (item.tag.parentNode !== room.labels) room.labels.appendChild(item.tag);
     }
     room.desks.forEach((node, i) => node.classList.toggle('is-lit', lit.has(i)));
     const n = all.length;
