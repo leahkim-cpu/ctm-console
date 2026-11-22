@@ -2,7 +2,7 @@
 
 A live, read-only console for two coding agents (Claude Code and Codex) sharing one context ledger: a pixel office that shows each agent working, waiting or idle, and a graph of what each agent put in the ledger, where every node opens the transcript line that proves it.
 
-- **Live demo:** DEMO_URL (replays a recorded run on synthetic transcripts; no server needed)
+- **Live demo:** https://ctm-console.vercel.app (replays a recorded run on synthetic transcripts; no server needed)
 - **Run the full app locally:** see [Run locally](#run-locally) below.
 
 ![The pixel office mid-run](docs/console/07-office-states.png)
@@ -18,6 +18,11 @@ The full commit history is kept, so each change shows its real author.
 ## Deploying the demo
 
 `vercel.json` builds the read-only demo with `node scripts/build-demo-site.mjs`, which copies the same fixed file list the local server serves under `/console/` (`src/static-files.mjs`) into `site/`. The ledger API is not deployed: the full app binds to loopback only and is meant to run on your own machine.
+
+## Moving this repo to a new owner
+
+1. **GitHub:** on the repo page, Settings → General → Danger Zone → Transfer ownership, enter the new owner's username (for example `leahkim-cpu`), and confirm. They accept from the email GitHub sends. Old links redirect, and stars, issues and history move with it. The new owner can add the old owner back as a collaborator under Settings → Collaborators.
+2. **Vercel:** the demo is a separate Vercel project. Either the new owner imports the repo at vercel.com/new (the build settings come from `vercel.json`), or the current owner moves the project under Project → Settings → General → Transfer.
 
 ---
 
