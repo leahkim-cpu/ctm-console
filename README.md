@@ -1,10 +1,47 @@
+<div align="center">
+
 # CTM Console
 
-A live, read-only console for two coding agents, Claude Code and Codex, that share one context ledger. A furnished pixel office shows each agent working at its desk, waiting with a question, or idle in the lounge, and a graph shows what each agent put in the ledger. Click any node and the transcript line that proves it opens beside it.
+**Watch two coding agents share one memory, and check every claim they make.**
 
-**Live demo: https://ctm-console.vercel.app**. It replays a recorded 34-second run on synthetic transcripts, so nothing is sent anywhere.
+[**▶ Live demo**](https://ctm-console.vercel.app) · [How it works](#how-the-demo-works) · [Run locally](#run-it-locally) · [Credits](#credits)
 
-![The pixel office mid-run](docs/console/07-office-states.png)
+<img src="docs/showcase/demo.gif" alt="The demo: agents arrive in the pixel office, publish to the ledger, and hand work to each other" width="100%">
+
+</div>
+
+A live, read-only console for two coding agents, Claude Code and Codex, that share one context ledger:
+
+- **The office:** a furnished pixel office shows each agent working at its desk, waiting with a question, or idle in the lounge.
+- **The ledger:** a graph shows what each agent put in the ledger, such as goals, decisions, offers and questions, and draws a line wherever one agent's node answers the other's.
+- **The evidence:** click any node and the transcript lines that prove it open beside it, highlighted.
+
+## Screenshots
+
+**Click a node and see its proof:** the cited transcript lines open beside the ledger, highlighted.
+
+![Evidence panel open on a constraint, with the cited transcript lines highlighted](docs/showcase/evidence.png)
+
+**One office per agent:** Leo (Claude Code) waits at his desk with a question while Ali (Codex) idles in the lounge.
+
+![The Claude Code and Codex offices, one agent waiting and one idle](docs/showcase/office-states.png)
+
+<table>
+<tr>
+<td width="40%"><img src="docs/showcase/phone.png" alt="The console on a phone"></td>
+<td>
+
+**Works on a phone.** The offices stack, and nothing scrolls sideways at 375 px.
+
+**Built to be trusted:**
+- Plain ES modules and SVG, no framework
+- A strict Content Security Policy: no inline styles or scripts, no third-party requests
+- Transcript text is only ever set with `textContent`
+- Local, open-licensed fonts
+
+</td>
+</tr>
+</table>
 
 ## How the demo works
 
