@@ -1,3 +1,26 @@
+# CTM Console
+
+A live, read-only console for two coding agents (Claude Code and Codex) sharing one context ledger: a pixel office that shows each agent working, waiting or idle, and a graph of what each agent put in the ledger, where every node opens the transcript line that proves it.
+
+- **Live demo:** DEMO_URL (replays a recorded run on synthetic transcripts; no server needed)
+- **Run the full app locally:** see [Run locally](#run-locally) below.
+
+![The pixel office mid-run](docs/console/07-office-states.png)
+
+## Credits
+
+- **Design:** [Leah Kim](https://github.com/leahkim-cpu): the design lookbook, the furnished pixel office, the agent characters and the CTM console look.
+- **Console build:** [Muhammadali Nazarov](https://github.com/AliNazaarov): brand tokens and pixel sprites (U4), the furnished office and logo (U4b), the project picker (U5), the pixel console and agent crew (U6) and the reviewer prototype (P3).
+- **Context Ledger core:** [Ruslan Kan](https://github.com/PricePepel) and contributors, who wrote the ledger, server, graph, recorder and runtime this console sits on. Upstream: [PricePepel/context-ledger](https://github.com/PricePepel/context-ledger) (MIT).
+
+The full commit history is kept, so each change shows its real author.
+
+## Deploying the demo
+
+`vercel.json` builds the read-only demo with `node scripts/build-demo-site.mjs`, which copies the same fixed file list the local server serves under `/console/` (`src/static-files.mjs`) into `site/`. The ledger API is not deployed: the full app binds to loopback only and is meant to run on your own machine.
+
+---
+
 # Context Ledger
 
 A local transcript library for handing work between Claude Code and Codex. Import a selected JSONL transcript, find a conversation by keyword, and give another agent the relevant turns with their original line numbers.

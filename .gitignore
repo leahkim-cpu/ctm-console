@@ -9,3 +9,5 @@ demo/out/
 __pycache__/
 *.pyc
 *.pt
+site/
+.vercel/
