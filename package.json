@@ -1,0 +1,13 @@
+{
+  "name": "ctm-console",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A pixel-office console for Claude Code and Codex sharing one context ledger, with a replayable demo.",
+  "license": "MIT",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "node scripts/build-demo-site.mjs",
+    "start": "node scripts/build-demo-site.mjs && node scripts/serve-demo.mjs"
+  }
+}

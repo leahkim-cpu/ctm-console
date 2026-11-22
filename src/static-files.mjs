@@ -1,8 +1,5 @@
-// The fixed list of browser files the server serves; also used by scripts/build-demo-site.mjs.
+// The console's fixed file list: each URL path and the file under public/ it comes from.
 export const staticFiles = new Map([
-  ['/', ['index.html', 'text/html']],
-  ['/app.js', ['app.js', 'text/javascript']],
-  ['/styles.css', ['styles.css', 'text/css']],
   // The console (card U1): a fixed list, so no other path under /console/ is served.
   ['/console', ['console/index.html', 'text/html']],
   ['/console/', ['console/index.html', 'text/html']],

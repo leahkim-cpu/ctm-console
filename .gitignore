@@ -1,14 +1,4 @@
 node_modules/
-.context-ledger/
-playwright-report/
-test-results/
-.env*
-*.sqlite*
-.claude/worktrees/
-demo/out/
-__pycache__/
-*.pyc
-*.pt
 site/
-.vercel/
 .vercel
+.DS_Store
